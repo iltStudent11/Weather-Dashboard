@@ -32,6 +32,8 @@ const WEATHER_CODE_LABELS = {
   99: 'Thunderstorm with heavy hail',
 }
 
+const US_ZIP_CODE_PATTERN = /^\d{5}(?:-\d{4})?$/
+
 function App() {
   const [city, setCity] = useState('London')
   const [weather, setWeather] = useState(null)
@@ -43,24 +45,54 @@ function App() {
     setError('')
 
     try {
-      const geocodeResponse = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`,
-      )
-      const geocodeData = await geocodeResponse.json()
-      const selectedCity = geocodeData.results?.[0]
+      const isZipCode = US_ZIP_CODE_PATTERN.test(location)
+      let selectedLocation
 
-      if (!selectedCity) {
-        throw new Error('City not found. Please try another search.')
+      if (isZipCode) {
+        const zipCode = location.slice(0, 5)
+        const zipResponse = await fetch(
+          `https://api.zippopotam.us/us/${encodeURIComponent(zipCode)}`,
+        )
+
+        if (!zipResponse.ok) {
+          throw new Error('U.S. zip code not found. Please try another zip code.')
+        }
+
+        const zipData = await zipResponse.json()
+        const zipPlace = zipData.places?.[0]
+
+        if (!zipPlace) {
+          throw new Error('U.S. zip code not found. Please try another zip code.')
+        }
+
+        selectedLocation = {
+          name: `${zipPlace['place name']}, ${zipPlace['state abbreviation']}`,
+          country: 'United States',
+          latitude: Number(zipPlace.latitude),
+          longitude: Number(zipPlace.longitude),
+        }
+      } else {
+        const geocodeResponse = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`,
+        )
+        const geocodeData = await geocodeResponse.json()
+        const selectedCity = geocodeData.results?.[0]
+
+        if (!selectedCity) {
+          throw new Error('City not found. Please try another search.')
+        }
+
+        selectedLocation = selectedCity
       }
 
       const weatherResponse = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${selectedCity.latitude}&longitude=${selectedCity.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`,
+        `https://api.open-meteo.com/v1/forecast?latitude=${selectedLocation.latitude}&longitude=${selectedLocation.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&temperature_unit=fahrenheit&timezone=auto`,
       )
       const weatherData = await weatherResponse.json()
 
       setWeather({
-        city: selectedCity.name,
-        country: selectedCity.country,
+        city: selectedLocation.name,
+        country: selectedLocation.country,
         ...weatherData.current,
       })
     } catch (requestError) {
@@ -83,7 +115,7 @@ function App() {
     event.preventDefault()
 
     if (!city.trim()) {
-      setError('Please enter a city name.')
+      setError('Please enter a city or U.S. zip code.')
       setWeather(null)
       return
     }
@@ -96,13 +128,13 @@ function App() {
       <h1>Weather Dashboard</h1>
 
       <form className="search-form" onSubmit={handleSubmit}>
-        <label htmlFor="city-input">City</label>
+        <label htmlFor="city-input">City or Zip Code</label>
         <input
           id="city-input"
           type="text"
           value={city}
           onChange={(event) => setCity(event.target.value)}
-          placeholder="Enter a city"
+          placeholder="Enter city or zip code"
         />
         <button type="submit" disabled={isLoading}>
           {isLoading ? 'Loading...' : 'Get Weather'}
@@ -120,7 +152,7 @@ function App() {
           <dl>
             <div>
               <dt>Temperature</dt>
-              <dd>{weather.temperature_2m}°C</dd>
+              <dd>{weather.temperature_2m}°F</dd>
             </div>
             <div>
               <dt>Humidity</dt>
