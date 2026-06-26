@@ -2,12 +2,45 @@
 
 A React weather dashboard built with Vite.
 
-## Scripts
+## Setup
 
 - `npm install`
-- `npm run dev`
-- `npm run lint`
-- `npm run build`
+
+## Tech Stack
+
+- **Frontend:** React 19 + TypeScript
+- **Build Tool:** Vite
+- **Routing:** React Router
+- **State Management:** React Context + custom hooks
+- **Testing:** Vitest + React Testing Library
+- **Linting:** Oxlint
+- **Deployment:** GitHub Pages via GitHub Actions
+
+## Available Scripts
+
+- `npm run dev` - start the Vite development server
+- `npm run build` - create a production build in `dist/`
+- `npm run preview` - preview the production build locally
+- `npm run lint` - run lint checks with Oxlint
+- `npm run test` - run the Vitest test suite once
+- `npm run test:watch` - run Vitest in watch mode
+
+## Routes
+
+- `/` - locations list page
+- `/search` - add/edit location form
+- `/location/:query` - weather detail page for a city or zip query
+- `*` - not found fallback page
+
+## Testing
+
+This project uses **Vitest** and **React Testing Library**.
+
+- Test command: `npm run test`
+- Watch mode: `npm run test:watch`
+- Current test files:
+	- `src/pages/LocationsPage.test.tsx`
+	- `src/pages/SearchLocationPage.test.tsx`
 
 ## Deploy (GitHub Pages)
 
