@@ -19,6 +19,10 @@ This repo includes a GitHub Actions workflow at `.github/workflows/deploy.yml`.
 
 After that, every push to `main` deploys automatically.
 
+## Architecture Rationale
+
+See [RATIONALE.md](RATIONALE.md) for a summary of component hierarchy, state management, custom hook decisions, and routing/data-fetching approach.
+
 ## Data Source
 
 Weather data and city lookup are provided by the public [Open-Meteo APIs](https://open-meteo.com/).
