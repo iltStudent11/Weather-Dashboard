@@ -1,12 +1,24 @@
-import { Component } from 'react'
+import { Component, type ReactNode } from 'react'
 
-class AppErrorBoundary extends Component {
-  constructor(props) {
+interface AppErrorBoundaryProps {
+  children: ReactNode
+}
+
+interface AppErrorBoundaryState {
+  hasError: boolean
+  message: string
+}
+
+class AppErrorBoundary extends Component<
+  AppErrorBoundaryProps,
+  AppErrorBoundaryState
+> {
+  constructor(props: AppErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, message: '' }
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: unknown): AppErrorBoundaryState {
     return {
       hasError: true,
       message: error instanceof Error ? error.message : 'Unexpected error',

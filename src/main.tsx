@@ -2,10 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
-import App from './App.jsx'
-import AppErrorBoundary from './components/AppErrorBoundary.jsx'
+import App from './App'
+import AppErrorBoundary from './components/AppErrorBoundary'
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <AppErrorBoundary>
       <BrowserRouter basename={import.meta.env.BASE_URL}>

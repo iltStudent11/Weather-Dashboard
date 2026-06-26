@@ -1,4 +1,52 @@
-export const WEATHER_CODE_LABELS = {
+export interface WeatherData {
+  city: string
+  country: string
+  temperature_2m: number
+  relative_humidity_2m: number
+  wind_speed_10m: number
+  weather_code: number
+}
+
+interface ResolvedLocation {
+  city: string
+  country: string
+  latitude: number
+  longitude: number
+}
+
+interface OpenMeteoSearchResult {
+  name: string
+  country: string
+  latitude: number
+  longitude: number
+  admin1?: string
+}
+
+interface OpenMeteoSearchResponse {
+  results?: OpenMeteoSearchResult[]
+}
+
+interface ZipPlace {
+  'place name': string
+  'state abbreviation': string
+  latitude: string
+  longitude: string
+}
+
+interface ZipResponse {
+  places?: ZipPlace[]
+}
+
+interface OpenMeteoForecastResponse {
+  current: {
+    temperature_2m: number
+    relative_humidity_2m: number
+    wind_speed_10m: number
+    weather_code: number
+  }
+}
+
+export const WEATHER_CODE_LABELS: Record<number, string> = {
   0: 'Clear sky',
   1: 'Mainly clear',
   2: 'Partly cloudy',
@@ -31,7 +79,7 @@ export const WEATHER_CODE_LABELS = {
 
 const US_ZIP_CODE_PATTERN = /^\d{5}(?:-\d{4})?$/
 
-const US_STATE_ABBREVIATIONS = {
+const US_STATE_ABBREVIATIONS: Record<string, string> = {
   AL: 'Alabama',
   AK: 'Alaska',
   AZ: 'Arizona',
@@ -92,17 +140,17 @@ const US_STATE_NAMES_TO_ABBREVIATIONS = Object.fromEntries(
   ]),
 )
 
-function normalizeText(value) {
+function normalizeText(value: string): string {
   return value.trim().toLowerCase().replace(/\./g, '')
 }
 
-function parseUsCityStateInput(searchTerm) {
+function parseUsCityStateInput(searchTerm: string) {
   const normalizedSearchTerm = searchTerm.trim().replace(/\s+/g, ' ')
   const commaPatternMatch = normalizedSearchTerm.match(/^(.+?),\s*([A-Za-z ]+)$/)
   const spacePatternMatch = normalizedSearchTerm.match(/^(.+)\s+([A-Za-z]{2})$/)
 
-  let cityPart
-  let statePart
+  let cityPart: string
+  let statePart: string
 
   if (commaPatternMatch) {
     cityPart = commaPatternMatch[1].trim()
@@ -138,7 +186,7 @@ function parseUsCityStateInput(searchTerm) {
   }
 }
 
-async function resolveLocation(searchTerm) {
+async function resolveLocation(searchTerm: string): Promise<ResolvedLocation> {
   const isZipCode = US_ZIP_CODE_PATTERN.test(searchTerm)
   const usCityStateInput = parseUsCityStateInput(searchTerm)
 
@@ -152,7 +200,7 @@ async function resolveLocation(searchTerm) {
       throw new Error('U.S. zip code not found. Please try another zip code.')
     }
 
-    const zipData = await zipResponse.json()
+    const zipData = (await zipResponse.json()) as ZipResponse
     const zipPlace = zipData.places?.[0]
 
     if (!zipPlace) {
@@ -176,9 +224,10 @@ async function resolveLocation(searchTerm) {
       throw new Error('Unable to fetch location details.')
     }
 
-    const geocodeData = await geocodeResponse.json()
+    const geocodeData = (await geocodeResponse.json()) as OpenMeteoSearchResponse
     const stateMatchedCity = geocodeData.results?.find(
-      (result) => normalizeText(result.admin1 ?? '') === normalizeText(usCityStateInput.stateName),
+      (result) =>
+        normalizeText(result.admin1 ?? '') === normalizeText(usCityStateInput.stateName),
     )
 
     if (!stateMatchedCity) {
@@ -203,7 +252,7 @@ async function resolveLocation(searchTerm) {
     throw new Error('Unable to fetch location details.')
   }
 
-  const geocodeData = await geocodeResponse.json()
+  const geocodeData = (await geocodeResponse.json()) as OpenMeteoSearchResponse
   const selectedCity = geocodeData.results?.[0]
 
   if (!selectedCity) {
@@ -218,7 +267,7 @@ async function resolveLocation(searchTerm) {
   }
 }
 
-export async function fetchWeatherByLocation(searchTerm) {
+export async function fetchWeatherByLocation(searchTerm: string): Promise<WeatherData> {
   const location = await resolveLocation(searchTerm)
 
   const weatherResponse = await fetch(
@@ -229,7 +278,7 @@ export async function fetchWeatherByLocation(searchTerm) {
     throw new Error('Unable to fetch weather data.')
   }
 
-  const weatherData = await weatherResponse.json()
+  const weatherData = (await weatherResponse.json()) as OpenMeteoForecastResponse
 
   return {
     city: location.city,

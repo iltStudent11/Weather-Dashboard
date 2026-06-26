@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { WEATHER_CODE_LABELS, fetchWeatherByLocation } from '../services/weatherApi'
+import { useWeather } from '../hooks/useWeather'
+import { WEATHER_CODE_LABELS } from '../services/weatherApi'
 
-function safeDecodeURIComponent(value) {
+function safeDecodeURIComponent(value: string): string {
   try {
     return decodeURIComponent(value)
   } catch {
@@ -13,43 +13,7 @@ function safeDecodeURIComponent(value) {
 function LocationDetailPage() {
   const { query = '' } = useParams()
   const decodedQuery = safeDecodeURIComponent(query)
-  const [status, setStatus] = useState('loading')
-  const [weather, setWeather] = useState(null)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let isCancelled = false
-
-    const loadWeather = async () => {
-      setStatus('loading')
-      setError('')
-
-      try {
-        const weatherData = await fetchWeatherByLocation(decodedQuery)
-
-        if (!isCancelled) {
-          setWeather(weatherData)
-          setStatus('success')
-        }
-      } catch (requestError) {
-        if (!isCancelled) {
-          setWeather(null)
-          setStatus('error')
-          setError(
-            requestError instanceof Error
-              ? requestError.message
-              : 'Unable to fetch weather data.',
-          )
-        }
-      }
-    }
-
-    loadWeather()
-
-    return () => {
-      isCancelled = true
-    }
-  }, [decodedQuery])
+  const { status, weather, error } = useWeather(decodedQuery)
 
   return (
     <section className="page-section">

@@ -1,7 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocationsContext } from '../context/LocationsContext'
 
-function safeDecodeURIComponent(value) {
+interface SearchFormData {
+  location: string
+}
+
+interface SearchFormErrors {
+  location?: string
+}
+
+function safeDecodeURIComponent(value: string): string {
   try {
     return decodeURIComponent(value)
   } catch {
@@ -9,18 +18,20 @@ function safeDecodeURIComponent(value) {
   }
 }
 
-function SearchLocationPage({ onAddLocation, onEditLocation }) {
-  const [formData, setFormData] = useState({
+function SearchLocationPage() {
+  const [formData, setFormData] = useState<SearchFormData>({
     location: '',
   })
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<SearchFormErrors>({})
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { addLocation, editLocation } = useLocationsContext()
+
   const editParam = searchParams.get('edit')
   const locationToEdit = editParam ? safeDecodeURIComponent(editParam) : ''
   const isEditMode = Boolean(locationToEdit)
 
-  const handleChange = (event) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target
 
     setFormData((previousFormData) => ({
@@ -30,12 +41,12 @@ function SearchLocationPage({ onAddLocation, onEditLocation }) {
 
     setErrors((previousErrors) => ({
       ...previousErrors,
-      [name]: '',
+      [name]: undefined,
     }))
   }
 
-  const validateForm = () => {
-    const nextErrors = {}
+  const validateForm = (): SearchFormErrors => {
+    const nextErrors: SearchFormErrors = {}
     const trimmedLocation = formData.location.trim()
 
     if (!trimmedLocation) {
@@ -55,7 +66,7 @@ function SearchLocationPage({ onAddLocation, onEditLocation }) {
     }
   }, [isEditMode, locationToEdit])
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const validationErrors = validateForm()
 
@@ -67,9 +78,9 @@ function SearchLocationPage({ onAddLocation, onEditLocation }) {
     const trimmedQuery = formData.location.trim()
 
     if (isEditMode) {
-      onEditLocation(locationToEdit, trimmedQuery)
+      editLocation(locationToEdit, trimmedQuery)
     } else {
-      onAddLocation(trimmedQuery)
+      addLocation(trimmedQuery)
     }
 
     navigate(`/location/${encodeURIComponent(trimmedQuery)}`)

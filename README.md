@@ -23,6 +23,16 @@ After that, every push to `main` deploys automatically.
 
 See [RATIONALE.md](RATIONALE.md) for a summary of component hierarchy, state management, custom hook decisions, and routing/data-fetching approach.
 
+## Requirements Checklist
+
+- [x] React + TypeScript application with Vite and 2–3 routes (`/`, `/search`, `/location/:query`, plus `*` fallback)
+- [x] Component hierarchy with typed props and a composition pattern using `children`
+- [x] Hooks: `useState`, `useEffect` (with cleanup), `useContext`, and a custom hook (`useWeather`)
+- [x] Data fetching with loading, success, and error states
+- [x] At least one form with controlled inputs and validation
+- [x] At least 2–3 tests with React Testing Library (3 tests total)
+- [x] Written architecture rationale (200–400 words) in [RATIONALE.md](RATIONALE.md)
+
 ## Data Source
 
 Weather data and city lookup are provided by the public [Open-Meteo APIs](https://open-meteo.com/).
